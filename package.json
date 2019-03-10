@@ -1,6 +1,6 @@
 {
   "name": "@xieyuheng/cx",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "author": "Xie Yuheng",
   "main": "dist/index.js",
   "scripts": {
