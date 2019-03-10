@@ -1,7 +1,4 @@
 {
-  "name": "cx-tests",
-  "version": "0.0.1",
-  "author": "Xie Yuheng",
   "scripts": {
     "test": "ava"
   },
