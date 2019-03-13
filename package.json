@@ -1,6 +1,6 @@
 {
-  "name": "@xieyuheng/cx",
-  "version": "0.0.3",
+  "name": "cell-complex",
+  "version": "0.0.1",
   "author": "Xie Yuheng",
   "main": "dist/index.js",
   "scripts": {

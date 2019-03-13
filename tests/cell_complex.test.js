@@ -1,6 +1,6 @@
 import test from "ava"
 
-import { cell_complex_t, cell_t } from "@xieyuheng/cx"
+import { cell_complex_t, cell_t } from "cell-complex"
 
 test ("torus", t => {
   let o = new cell_t (0, 0, new cell_complex_t ([]))

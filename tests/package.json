@@ -6,7 +6,7 @@
     "ava": "^1.3.1"
   },
   "dependencies": {
-    "@xieyuheng/cx": "0.0.3",
+    "cell-complex": "0.0.1",
     "@types/lodash": "^4.14.122",
     "lodash": "^4.17.11"
   }

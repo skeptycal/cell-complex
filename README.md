@@ -1,4 +1,4 @@
-# cx -- a cell complex library
+# a cell complex library
 
 - [wikipedia page about cell complex](https://en.wikipedia.org/wiki/cell_complex)
 
