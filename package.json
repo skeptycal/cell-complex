@@ -8,10 +8,10 @@
     "watch": "tsc --watch"
   },
   "devDependencies": {
-    "typescript": "^3.2.2"
+    "typescript": "^3.3.3333"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.122",
+    "@types/lodash": "^4.14.123",
     "lodash": "^4.17.11"
   }
 }
