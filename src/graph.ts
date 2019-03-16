@@ -4,8 +4,20 @@ export
 class vertex_t <V> {
   constructor (
     public id: id_t,
-    public info: { value: V },
+    public info: V,
   ) {}
+
+  // - shallow clone
+  clone (): vertex_t <V> {
+    return new vertex_t (this.id, this.info)
+  }
+
+  more_info <I> (info: I): vertex_t <V & I> {
+    return new vertex_t (this.id, {
+      ...this.info,
+      ...info,
+    })
+  }
 }
 
 export
@@ -14,8 +26,20 @@ class edge_t <V, E> {
     public id: id_t,
     public start: id_t,
     public end: id_t,
-    public info: { value: E },
+    public info: E,
   ) {}
+
+  // - shallow clone
+  clone (): edge_t <V, E> {
+    return new edge_t (this.id, this.start, this.end, this.info)
+  }
+
+  more_info <I> (info: I): edge_t <V, E & I> {
+    return new edge_t (this.id, this.start, this.end, {
+      ...this.info,
+      ...info,
+    })
+  }
 }
 
 export
@@ -35,13 +59,12 @@ class graph_t <V, E> {
 
   vertex (
     v: id_t,
-    value: V,
+    info: V,
   ): graph_t <V, E> {
     if (this.vertex_map.has (v)) throw new Error (
       `[error] graph_t.vertex fail`
     )
-    else this.vertex_map.set (v, new vertex_t (
-      v, { value: value }))
+    else this.vertex_map.set (v, new vertex_t (v, info))
     return this
   }
 
@@ -49,13 +72,12 @@ class graph_t <V, E> {
     e: id_t,
     start: id_t,
     end: id_t,
-    value: E,
+    info: E,
   ): graph_t <V, E> {
     if (this.edge_map.has (e)) throw new Error (
       `[error] graph_t.edge fail`
     )
-    else this.edge_map.set (e, new edge_t (
-      e, start, end, { value: value }))
+    else this.edge_map.set (e, new edge_t (e, start, end, info))
     return this
   }
 
