@@ -4,7 +4,7 @@ export
 class vertex_t <V> {
   constructor (
     public id: id_t,
-    public value?: V,
+    public info: { value: V },
   ) {}
 }
 
@@ -14,14 +14,13 @@ class edge_t <V, E> {
     public id: id_t,
     public start: id_t,
     public end: id_t,
-    public value?: E,
+    public info: { value: E },
   ) {}
 }
 
 export
 class graph_t <V, E> {
   // simple graph representation
-  // - with vertex value of type V and edge value of type E
   // - in the following "O" notation V and E denote sizes
 
   // - space ~ O (V + E)
@@ -36,12 +35,13 @@ class graph_t <V, E> {
 
   vertex (
     v: id_t,
-    value?: V,
+    value: V,
   ): graph_t <V, E> {
     if (this.vertex_map.has (v)) throw new Error (
       `[error] graph_t.vertex fail`
     )
-    else this.vertex_map.set (v, new vertex_t (v, value))
+    else this.vertex_map.set (v, new vertex_t (
+      v, { value: value }))
     return this
   }
 
@@ -49,12 +49,13 @@ class graph_t <V, E> {
     e: id_t,
     start: id_t,
     end: id_t,
-    value?: E,
+    value: E,
   ): graph_t <V, E> {
     if (this.edge_map.has (e)) throw new Error (
       `[error] graph_t.edge fail`
     )
-    else this.edge_map.set (e, new edge_t (e, start, end, value))
+    else this.edge_map.set (e, new edge_t (
+      e, start, end, { value: value }))
     return this
   }
 
