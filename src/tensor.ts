@@ -6,7 +6,6 @@ export type Array3d = Array <Array <Array <number>>>
 
 export
 class tensor_t {
-  dim: number
   size: number
   strides: Array <number>
 
@@ -14,7 +13,6 @@ class tensor_t {
     public shape: Array <number>,
     public buffer: Float64Array,
   ) {
-    this.dim = shape.length
     this.size = shape.reduce ((acc, cur) => acc * cur)
     this.strides = shape_to_strides (shape)
 
