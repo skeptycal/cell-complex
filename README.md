@@ -1,4 +1,4 @@
-# a cell complex library
+# a cell-complex based algebraic topology library
 
 - [wikipedia page about cell complex](https://en.wikipedia.org/wiki/cell_complex)
 
