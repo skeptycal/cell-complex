@@ -3,6 +3,5 @@ export default () => {
     files: [
       "tests/*.test.js",
     ],
-    tap: true,
   }
 }

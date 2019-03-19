@@ -1,14 +1,28 @@
 import test from "ava"
 
-// import { cell_complex_t, cell_t } from "../dist/cx"
+import * as cx from "../dist/cx"
 
-test ("torus", t => {
-//   let o = new cell_t (0, 0, new cell_complex_t ([]))
-//   let p = new cell_t (1, 0, new cell_complex_t ([o, o]))
-//   let q = new cell_t (1, 1, new cell_complex_t ([o, o]))
-//   let m = new cell_t (2, 0, new cell_complex_t ([p, q, p, q]))
+import {
+  id_t, cmap_t, cell_t,
+  cell_complex_t,
+  spherical_complex_t
+} from "../dist/cx"
 
-//   console.log (m)
+test ("empty", t => {
+  let empty = new cell_complex_t ()
 
-  t.pass ()
+  t.true (empty.point_set.size === 0)
+  t.true (empty.cell_map.size === 0)
 })
+
+test ("singleton", t => {
+  let singleton = new cell_complex_t ()
+
+  let id_array = singleton.inc_points (1)
+
+  t.true (id_array.length === 1)
+  t.true (singleton.point_set.size === 1)
+  t.true (singleton.cell_map.size === 0)
+})
+
+test.todo ("torus")
