@@ -2,6 +2,10 @@
 
 - [wikipedia page about cell complex](https://en.wikipedia.org/wiki/cell_complex)
 
+------
+
+![spot-the-cow](https://github.com/xieyuheng/image-link/blob/master/homotopy/spot-the-cow.gif)
+
 ## Contributing
 
 We enforce C4 as collaboration protocol :

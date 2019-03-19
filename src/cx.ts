@@ -30,6 +30,14 @@ class cell_t {
   }
 }
 
+function continuous_map_p (
+  
+  map: Map <id_t, id_t>,
+): boolean {
+  // [todo]
+  return true
+}
+
 export
 class cell_complex_t {
   constructor (
@@ -37,14 +45,28 @@ class cell_complex_t {
   ) {}
 }
 
+function spherical_complex_p (
+  cell_complex: cell_complex_t
+): boolean {
+  // [todo]
+  return true
+}
+
 export
 class spherical_complex_t
 extends cell_complex_t {
+  spherical_p: true
 
   constructor (
-    public cell_complex: cell_complex_t,
+    cell_complex: cell_complex_t,
   ) {
-    // [todo] spherical_check
     super (cell_complex.cells)
+
+    if (spherical_complex_p (cell_complex)) {
+      this.spherical_p = true
+    }
+    else {
+      throw new Error ("spherical check failed")
+    }
   }
 }
