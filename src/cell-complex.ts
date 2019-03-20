@@ -12,6 +12,10 @@ class id_t {
   toString (): string {
     return [this.dim, this.ser] .toString ()
   }
+
+  rev (): rev_id_t {
+    return new rev_id_t (this)
+  }
 }
 
 type id_map_t = Map <string, id_t>
@@ -370,11 +374,6 @@ class rev_id_t {
   ) {}
 }
 
-export
-function rev (rev: id_t): rev_id_t {
-  return new rev_id_t (rev)
-}
-
 type circuit_t = Array <id_t | rev_id_t>
 
 // [todo] refactor face_t constructor
@@ -427,7 +426,9 @@ class torus_t extends cell_complex_t {
     this.polo = this.attach_edge (origin, origin)
     this.toro = this.attach_edge (origin, origin)
     this.surf = this.attach_face ([
-      this.polo, this.toro, rev (this.polo), rev (this.toro)])
+      this.polo, this.toro,
+      this.polo.rev (), this.toro.rev (),
+    ])
   }
 }
 
