@@ -1,8 +1,9 @@
 # a cell-complex based algebraic topology library
 
-- [wikipedia page about cell complex](https://en.wikipedia.org/wiki/cell_complex)
+## Docs
 
-- [api docs](https://api.cell-complex.surge.sh)
+- wikipedia: https://en.wikipedia.org/wiki/cell_complex
+- api: https://api.cell-complex.surge.sh
 
 ------
 
