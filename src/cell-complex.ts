@@ -8,7 +8,13 @@ class id_t {
     readonly dim: number,
     readonly ser: number,
   ) {}
+
+  toString (): string {
+    return [this.dim, this.ser] .toString ()
+  }
 }
+
+type id_map_t = Map <string, id_t>
 
 export
 class cmap_t {
@@ -20,7 +26,7 @@ class cmap_t {
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
-    readonly map: Map <id_t, id_t>,
+    readonly map: id_map_t,
   ) {
     if (continuous_map_p (dom, cod, map)) {
       ////
@@ -28,13 +34,21 @@ class cmap_t {
       throw new Error ("continuous check failed")
     }
   }
+
+  get (id: id_t) {
+    let value = this.map.get (id.toString ())
+    if (value === undefined) {
+      throw new Error ("id no in domain")
+    }
+    return value
+  }
 }
 
 export
 function continuous_map_p (
   dom: cell_complex_t,
   cod: cell_complex_t,
-  map: Map <id_t, id_t>,
+  map: id_map_t,
 ): boolean {
   // [todo]
   return true
@@ -45,15 +59,19 @@ class cell_t extends cmap_t {
     /**
      * The domain of a `attaching_map`
      * is the `boundary` of a n-ball.
-     * But practically, we do not need an explicit n-ball.
+     * But practically, we do not need an explicit n-ball,
+     * because it is uniquely determined by dimension.
      */
   constructor (
-    public dim: number,
-    public boundary: spherical_complex_t,
-    public cell_complex: cell_complex_t,
-    public attaching_map: Map <id_t, id_t>,
+    readonly boundary: spherical_complex_t,
+    readonly cell_complex: cell_complex_t,
+    readonly attaching_map: id_map_t,
   ) {
     super (boundary, cell_complex, attaching_map)
+  }
+
+  dim (): number {
+    return this.boundary.dim () + 1
   }
 }
 
@@ -63,12 +81,21 @@ class cell_t extends cmap_t {
  */
 export
 class cell_complex_t {
-  protected point_array: Array <id_t>;
-  protected cell_map: Map <id_t, cell_t>;
+  /**
+   * Points are special, because a point has not boundary.
+   */
+  protected point_array: Array <id_t>
+  protected cell_map: Map <id_t, cell_t>
 
   constructor () {
     this.point_array = new Array ()
     this.cell_map = new Map ()
+  }
+
+  dim (): number {
+    let array = Array.from (this.cell_map.keys ())
+      .map (id => id.dim)
+    return Math.max (0, ...array)
   }
 
   get_point_array (): Array <id_t> {
@@ -146,10 +173,18 @@ class cell_complex_t {
     return array
   }
 
-  protected add_cell (cell: cell_t): id_t {
-    let id = this.gen_id (cell.dim)
+  protected attach (cell: cell_t): id_t {
+    let id = this.gen_id (cell.dim ())
     this.cell_map.set (id, cell)
     return id
+  }
+
+  protected attach_edge (start: id_t, end: id_t): id_t {
+    return this.attach (new edge_t (this, start, end))
+  }
+
+  protected attach_face (circuit: circuit_t): id_t {
+    return this.attach (new face_t (this, circuit))
   }
 
   spherical_p (): boolean {
@@ -162,13 +197,19 @@ class cell_complex_t {
     return spherical_complex
   }
 
-  protected attach (
-    dim: number,
-    boundary: spherical_complex_t,
-    attaching_map: Map <id_t, id_t>,
-  ): id_t {
-    return this.add_cell (
-      new cell_t (dim, boundary, this, attaching_map))
+  get_edge (id: id_t): edge_t {
+    if (id.dim !== 1) {
+      throw new Error ("dimension mismatch")
+    } else {
+      return this.get_cell (id) as edge_t
+    }
+  }
+
+  endpoints (id: id_t): { start: id_t, end: id_t } {
+    let edge = this.get_edge (id)
+    let start = edge.start
+    let end = edge.end
+    return { start, end }
   }
 }
 
@@ -257,35 +298,120 @@ class start_and_end_t extends discrete_complex_t {
 
 //// 1 dimension
 
+/**
+ * Although cell-complex is recursively defined,
+ * but each dimension has its own special features.
+ * For example, the only possible 1-cell is [[edge_t]].
+ */
+export
+class edge_t extends cell_t {
+  start: id_t
+  end: id_t
+
+  constructor (
+    com: cell_complex_t,
+    start: id_t,
+    end: id_t,
+  ) {
+    let start_and_end = new start_and_end_t ()
+    let dom = start_and_end.as_spherical ()
+    let map = new Map ([
+      [start_and_end.start.toString (), start],
+      [start_and_end.end.toString (), end],
+    ])
+    super (dom, com, map)
+    this.start = start
+    this.end = end
+  }
+}
+
 export
 class interval_t extends cell_complex_t {
   readonly start: id_t
   readonly end: id_t
-  readonly arrow: id_t
+  readonly inter: id_t
 
   constructor () {
     super ()
     let [start, end] = this.inc_points (2)
     this.start = start
     this.end = end
-    let start_and_end = new start_and_end_t ()
-    this.arrow = this.attach (
-      1, start_and_end.as_spherical (),
-      new Map ([
-        [start_and_end.start, start],
-        [start_and_end.end, end],
-      ]))
+    this.inter = this.attach_edge (start, end)
   }
 }
 
 export
 class polygon_t extends spherical_complex_t {
+  edge_array: Array <id_t>
+  size: number
+
   constructor (n: number) {
     super ()
+    this.size = n
+    let point_array = this.inc_points (n)
+    this.edge_array = []
+    let i = 0
+    while (i < n - 1) {
+      this.edge_array.push (
+        this.attach_edge (point_array [i], point_array [i + 1]))
+      i += 1
+    }
+    this.edge_array.push (
+      this.attach_edge (point_array [n - 1], point_array [0]))
   }
 }
 
 //// 2 dimension
+
+export
+class rev_id_t {
+  constructor (
+    readonly rev: id_t
+  ) {}
+}
+
+export
+function rev (rev: id_t): rev_id_t {
+  return new rev_id_t (rev)
+}
+
+type circuit_t = Array <id_t | rev_id_t>
+
+// [todo] refactor face_t constructor
+export
+class face_t extends cell_t {
+  circuit: circuit_t
+
+  constructor (
+    com: cell_complex_t,
+    circuit: circuit_t,
+  ) {
+    let size = circuit.length
+    let dom = new polygon_t (size)
+    let map = new Map ()
+    for (let i = 0; i < size; i += 1) {
+      let src = dom.edge_array [i]
+      let src_endpoints = dom.endpoints (src)
+      let tar = circuit [i]
+      let tar_endpoints: { start: id_t, end: id_t }
+      if (tar.constructor === rev_id_t) {
+        tar_endpoints = com.endpoints (
+          (tar as rev_id_t) .rev)
+        tar_endpoints = {
+          start: tar_endpoints.end,
+          end: tar_endpoints.start,
+        }
+      } else {
+        tar_endpoints = com.endpoints (tar as id_t)
+      }
+      map.set (src, tar)
+      map.set (src_endpoints.start, tar_endpoints.start)
+      map.set (src_endpoints.end, tar_endpoints.end)
+    }
+    super (dom, com, map)
+    this.circuit = circuit
+  }
+}
 
 export
 class torus_t extends cell_complex_t {
@@ -296,31 +422,15 @@ class torus_t extends cell_complex_t {
 
   constructor () {
     super ()
-
     let [origin] = this.inc_points (1)
     this.origin = origin
-
-    let start_and_end = new start_and_end_t ()
-    this.polo = this.attach (
-      1, start_and_end.as_spherical (),
-      new Map ([
-        [start_and_end.start, origin],
-        [start_and_end.end, origin],
-      ]))
-    this.toro = this.attach (
-      1, start_and_end.as_spherical (),
-      new Map ([
-        [start_and_end.start, origin],
-        [start_and_end.end, origin],
-      ]))
-
-    let quadrilateral = new cell_complex_t ()
-    this.surf = this.attach (
-      2, quadrilateral.as_spherical (),
-      new Map ([
-
-      ]))
+    this.polo = this.attach_edge (origin, origin)
+    this.toro = this.attach_edge (origin, origin)
+    this.surf = this.attach_face ([
+      this.polo, this.toro, rev (this.polo), rev (this.toro)])
   }
 }
+
+console.log (new torus_t ())
 
 //// 3 dimension
