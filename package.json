@@ -11,7 +11,9 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "api": "typedoc src --out docs/api --mode modules --readme none; surge docs/api api.cell-complex.surge.sh",
+    "api-local": "typedoc src --out docs/api --mode modules --readme none",
+    "api-up": "surge docs/api api.cell-complex.surge.sh",
+    "api": "npm run api-local; npm run api-up",
     "up": "git commit -m 'up'; npm run build; npm run api; npm version patch; git push; npm publish"
   },
   "devDependencies": {

@@ -1,9 +1,7 @@
-// - for a class of spaces
-//   we need to make sure that
-//   spaces not meant to be in class is not constructable
-// - to make a class easily inheritable
-//   its constructor should not take arguments
-
+/**
+ * In the context of a [[cell_complex_t]],
+ * The dimension and a serial number can identify a cell.
+ */
 export
 class id_t {
   constructor (
@@ -14,14 +12,16 @@ class id_t {
 
 export
 class cmap_t {
-  // a map is just a js Map,
-  // a cmap exists in the context of domain and codomain
+  /**
+   * A `map` is just a js [[Map]],
+   * while a `cmap` (continuous-map) can only exists
+   * in the context of its domain and codomain.
+   */
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
     readonly map: Map <id_t, id_t>,
   ) {
-    // every map is continuous
     if (continuous_map_p (dom, cod, map)) {
       ////
     } else {
@@ -42,6 +42,11 @@ function continuous_map_p (
 
 export
 class cell_t extends cmap_t {
+    /**
+     * The domain of a `attaching_map`
+     * is the `boundary` of a n-ball.
+     * But practically, we do not need an explicit n-ball.
+     */
   constructor (
     public dim: number,
     public boundary: spherical_complex_t,
@@ -49,21 +54,15 @@ class cell_t extends cmap_t {
     public attaching_map: Map <id_t, id_t>,
   ) {
     super (boundary, cell_complex, attaching_map)
-    // the domain of a attaching_map
-    //   is the boundary of a n_ball
-    //   (we do not need explicit n_ball)
-    // the boundary is a spherical_complex_t
-    //   thus also is a cell_complex_t
-    //   but this cell_complex is not part of
-    //   the cell_complex we are constructing
   }
 }
 
+/**
+ * The interface functions for side-effects are protected.
+ * After constructed, a cell-complex_t is pure.
+ */
 export
 class cell_complex_t {
-  // - side-effect interface are protected
-  //   after construction a cell_complex should not change
-
   protected point_array: Array <id_t>;
   protected cell_map: Map <id_t, cell_t>;
 
@@ -208,10 +207,8 @@ class spherical_complex_t extends cell_complex_t {
   }
 }
 
-// - use inheritance to specify more concrete constructions
-//   and extends the interface to meet specific needs
-// - since typescript has no multiple inheritance
-//   we use explicit `.as_*` to mimic this missing feature
+// Since typescript has no multiple inheritance,
+// we use explicit `.as_*` to mimic this missing feature.
 
 //// 0 dimension
 
@@ -261,13 +258,6 @@ class start_and_end_t extends discrete_complex_t {
 //// 1 dimension
 
 export
-class path_t extends cell_complex_t {
-  constructor () {
-    super ()
-  }
-}
-
-export
 class interval_t extends cell_complex_t {
   readonly start: id_t
   readonly end: id_t
@@ -290,7 +280,7 @@ class interval_t extends cell_complex_t {
 
 export
 class polygon_t extends spherical_complex_t {
-  constructor () {
+  constructor (n: number) {
     super ()
   }
 }
