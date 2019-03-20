@@ -11,10 +11,11 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "api": "typedoc src --out docs/api --mode modules --readme none; surge docs/api cell-complex.surge.sh"
+    "api": "typedoc src --out docs/api --mode modules --readme none; surge docs/api api.cell-complex.surge.sh"
   },
   "devDependencies": {
     "ava": "^1.3.1",
+    "typedoc": "^0.14.2",
     "typescript": "^3.3.3333"
   },
   "dependencies": {
