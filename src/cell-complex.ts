@@ -7,8 +7,8 @@
 export
 class id_t {
   constructor (
-    public dim: number,
-    public ser: number,
+    readonly dim: number,
+    readonly ser: number,
   ) {}
 }
 
@@ -17,9 +17,9 @@ class cmap_t {
   // a map is just a js Map,
   // a cmap exists in the context of domain and codomain
   constructor (
-    public dom: cell_complex_t,
-    public cod: cell_complex_t,
-    public map: Map <id_t, id_t>,
+    readonly dom: cell_complex_t,
+    readonly cod: cell_complex_t,
+    readonly map: Map <id_t, id_t>,
   ) {
     // every map is continuous
     if (continuous_map_p (dom, cod, map)) {
@@ -268,13 +268,6 @@ class path_t extends cell_complex_t {
 }
 
 export
-class polygon_t extends spherical_complex_t {
-  constructor () {
-    super ()
-  }
-}
-
-export
 class interval_t extends cell_complex_t {
   readonly start: id_t
   readonly end: id_t
@@ -295,9 +288,14 @@ class interval_t extends cell_complex_t {
   }
 }
 
-//// 2 dimension
+export
+class polygon_t extends spherical_complex_t {
+  constructor () {
+    super ()
+  }
+}
 
-// solid_polygon
+//// 2 dimension
 
 export
 class torus_t extends cell_complex_t {
