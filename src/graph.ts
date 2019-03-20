@@ -54,7 +54,6 @@ class graph_t <V, E> {
   ) {}
 
   // self-builder
-
   // - side-effect on existing object under the same id
 
   vertex (

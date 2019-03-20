@@ -1,8 +1,11 @@
-# for js
+# js
 dist
 node_modules
 
-# for emacs
+# typedoc
+docs/api
+
+# emacs
 *~
 *#*
 .#*
