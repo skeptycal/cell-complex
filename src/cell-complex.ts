@@ -56,12 +56,12 @@ function continuous_map_p (
 
 export
 class cell_t extends cmap_t {
-    /**
-     * The domain of a `attaching_map`
-     * is the `boundary` of a n-ball.
-     * But practically, we do not need an explicit n-ball,
-     * because it is uniquely determined by dimension.
-     */
+  /**
+   * The domain of a `attaching_map`
+   * is the `boundary` of a n-ball.
+   * But practically, we do not need an explicit n-ball,
+   * because it is uniquely determined by dimension.
+   */
   constructor (
     readonly boundary: spherical_complex_t,
     readonly cell_complex: cell_complex_t,
