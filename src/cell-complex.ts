@@ -23,7 +23,7 @@ type id_map_t = Map <string, id_t>
 export
 class cmap_t {
   /**
-   * A `map` is just a js [[Map]],
+   * A `map` is just a js `Map`,
    * while a `cmap` (continuous-map) can only exists
    * in the context of its domain and codomain.
    */
