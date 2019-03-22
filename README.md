@@ -3,7 +3,7 @@
 ## Docs
 
 - [paper](https://xieyuheng.github.io/writing/investigations-into-cell-complex.html)
-- [wikipedia page](https://en.wikipedia.org/wiki/cell_complex)
+- [wikipedia](https://en.wikipedia.org/wiki/cell_complex)
 - [api](https://api.cell-complex.surge.sh)
 
 ------
