@@ -222,18 +222,18 @@ class cell_complex_t {
 // }
 
 export
-class spherical_evidence_t {
-  spherical_evidence: string
+class spherical_complex_evidence_t {
+  spherical_complex_evidence: string
 
   constructor () {
-    this.spherical_evidence = "[todo]"
+    this.spherical_complex_evidence = "[todo]"
   }
 }
 
 export
 class spherical_complex_t extends cell_complex_t {
   info: {
-    spherical_evidence: spherical_evidence_t
+    spherical_complex_evidence: spherical_complex_evidence_t
   }
 
   constructor (
@@ -243,8 +243,8 @@ class spherical_complex_t extends cell_complex_t {
     if (cell_complex.spherical_p ()) {
       this.point_array = cell_complex.get_point_array ()
       this.cell_dic = cell_complex.get_cell_dic ()
-      let spherical_evidence = new spherical_evidence_t ()
-      this.info = { spherical_evidence }
+      let spherical_complex_evidence = new spherical_complex_evidence_t ()
+      this.info = { spherical_complex_evidence }
     } else {
       throw new Error ("spherical check failed")
     }

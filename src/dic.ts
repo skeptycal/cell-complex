@@ -1,3 +1,6 @@
+/**
+ * Map with `.toString ()` value as key.
+ */
 export
 class dic_t <K , V> {
   protected val_map: Map <string, V>
