@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git@github.com:xieyuheng/cell-complex.git"
   },
-  "main": "dist/index.js",
+  "main": "dist/cell-complex.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
