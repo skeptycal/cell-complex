@@ -222,6 +222,22 @@ class cell_complex_t {
 // }
 
 export
+class manifold_evidence_t {
+  constructor () {}
+}
+
+
+export
+class manifold_t extends cell_complex_t {
+  manifold_evidence: manifold_evidence_t
+
+  constructor () {
+    super ()
+    this.manifold_evidence = new manifold_evidence_t ()
+  }
+}
+
+export
 class spherical_complex_evidence_t {
   spherical_complex_evidence: string
 
@@ -243,7 +259,8 @@ class spherical_complex_t extends cell_complex_t {
     if (cell_complex.spherical_p ()) {
       this.point_array = cell_complex.get_point_array ()
       this.cell_dic = cell_complex.get_cell_dic ()
-      let spherical_complex_evidence = new spherical_complex_evidence_t ()
+      let spherical_complex_evidence =
+        new spherical_complex_evidence_t ()
       this.info = { spherical_complex_evidence }
     } else {
       throw new Error ("spherical check failed")
@@ -378,7 +395,6 @@ class rev_id_t extends id_t {
 
 type circuit_t = Array <id_t>
 
-// [todo] refactor face_t constructor
 export
 class face_t extends cell_t {
   circuit: circuit_t
