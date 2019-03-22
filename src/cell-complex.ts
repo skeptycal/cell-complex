@@ -25,20 +25,71 @@ class id_t {
   }
 }
 
-type map_t <T> = Map <string, T>
+export
+class dic_t <K , V> {
+  protected val_map: Map <string, V>
+  protected key_map: Map <string, K>
+
+  constructor () {
+    this.val_map = new Map ()
+    this.key_map = new Map ()
+  }
+
+  set (k: K, v: V): void {
+    let s = k.toString ()
+    this.val_map.set (s, v)
+    this.key_map.set (s, k)
+  }
+
+  has (k: K): boolean {
+    let s = k.toString ()
+    return this.val_map.has (s)
+  }
+
+  get (k: K): V {
+    let s = k.toString ()
+    let v = this.val_map.get (s)
+    if (v === undefined) {
+      throw new Error ("key no in dic")
+    }
+    return v
+  }
+
+  set_array (array: Array <[K, V]>): dic_t <K, V> {
+    for (let [k, v] of array) {
+      this.set (k, v)
+    }
+    return this
+  }
+
+  to_array (): Array <[K, V]> {
+    let array = new Array <[K, V]> ()
+    for (let [s, v] of this.val_map) {
+      let k = this.key_map.get (s) as K
+      array.push ([k, v])
+    }
+    return array
+  }
+
+  clone (): dic_t <K, V> {
+    let dic = new dic_t <K, V> ()
+    dic.val_map = new Map (this.val_map)
+    dic.key_map = new Map (this.key_map)
+    return dic
+  }
+}
 
 export
 class cmap_t {
   /**
-   * A `cmap` (continuous-map) can only exists
-   * in the context of its domain and codomain.
+   * "cmap" is a short for "continuous map".
    */
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
-    readonly map: map_t <id_t>,
+    readonly dic: dic_t <id_t, id_t>,
   ) {
-    if (continuous_map_p (dom, cod, map)) {
+    if (continuous_map_p (dom, cod, dic)) {
       ////
     } else {
       throw new Error ("continuous check failed")
@@ -46,11 +97,7 @@ class cmap_t {
   }
 
   get (id: id_t) {
-    let value = this.map.get (id.toString ())
-    if (value === undefined) {
-      throw new Error ("id no in domain")
-    }
-    return value
+    return this.dic.get (id)
   }
 }
 
@@ -58,7 +105,7 @@ export
 function continuous_map_p (
   dom: cell_complex_t,
   cod: cell_complex_t,
-  map: map_t <id_t>,
+  dic: dic_t <id_t, id_t>,
 ): boolean {
   // [todo]
   return true
@@ -69,9 +116,9 @@ class cell_t extends cmap_t {
   constructor (
     readonly boundary: spherical_complex_t,
     readonly cell_complex: cell_complex_t,
-    readonly attaching_map: map_t <id_t>,
+    readonly attaching: dic_t <id_t, id_t>,
   ) {
-    super (boundary, cell_complex, attaching_map)
+    super (boundary, cell_complex, attaching)
   }
 
   dim (): number {
@@ -89,17 +136,17 @@ class cell_complex_t {
    * Points are special, because a point has not boundary.
    */
   protected point_array: Array <id_t>
-  protected cell_map: map_t <cell_t>
+  protected cell_dic: dic_t <id_t, cell_t>
 
   constructor () {
     this.point_array = new Array ()
-    this.cell_map = new Map ()
+    this.cell_dic = new dic_t ()
   }
 
   get_cell_id_array (): Array <id_t> {
-    let array: Array <id_t> = []
-    for (let id_str of this.cell_map.keys ()) {
-      array.push (id_t.parse (id_str))
+    let array = new Array <id_t> ()
+    for (let [id, _cell] of this.cell_dic.to_array ()) {
+      array.push (id)
     }
     return array
   }
@@ -113,24 +160,23 @@ class cell_complex_t {
     return this.point_array.slice ()
   }
 
-  get_cell_map (): map_t <cell_t> {
-    return new Map (this.cell_map)
+  get_cell_dic (): dic_t <id_t, cell_t> {
+    return this.cell_dic.clone ()
   }
 
   clone (): cell_complex_t {
     let com = new cell_complex_t ()
     com.point_array = this.point_array.slice ()
-    com.cell_map = new Map (this.cell_map)
+    com.cell_dic = this.cell_dic.clone ()
     return com
   }
 
   skeleton (dim: number): cell_complex_t {
     let com = new cell_complex_t ()
     com.point_array = this.point_array.slice ()
-    for (let [id_str, cell] of this.cell_map) {
-      let id = id_t.parse (id_str)
+    for (let [id, cell] of this.cell_dic.to_array ()) {
       if (id.dim <= dim) {
-        com.cell_map.set (id_str, cell)
+        com.cell_dic.set (id, cell)
       }
     }
     return com
@@ -141,16 +187,11 @@ class cell_complex_t {
   }
 
   has_cell (id: id_t): boolean {
-    return this.cell_map.has (id.toString ())
+    return this.cell_dic.has (id)
   }
 
   get_cell (id: id_t): cell_t {
-    let cell = this.cell_map.get (id.toString ())
-    if (cell === undefined) {
-      throw new Error ("no such id")
-    } else {
-      return cell
-    }
+    return this.cell_dic.get (id)
   }
 
   // product (that: cell_complex_t): product_complex_t {
@@ -173,7 +214,7 @@ class cell_complex_t {
   }
 
   protected inc_points (n: number): Array <id_t> {
-    let array: Array <id_t> = []
+    let array = new Array <id_t> ()
     let size = this.point_array.length
     for (let i = size;
          i < size + n;
@@ -187,7 +228,7 @@ class cell_complex_t {
 
   protected attach (cell: cell_t): id_t {
     let id = this.gen_id (cell.dim ())
-    this.cell_map.set (id.toString (), cell)
+    this.cell_dic.set (id, cell)
     return id
   }
 
@@ -253,7 +294,7 @@ class spherical_complex_t extends cell_complex_t {
     super ()
     if (cell_complex.spherical_p ()) {
       this.point_array = cell_complex.get_point_array ()
-      this.cell_map = cell_complex.get_cell_map ()
+      this.cell_dic = cell_complex.get_cell_dic ()
       let spherical_evidence = new spherical_evidence_t ()
       this.info = { spherical_evidence }
     } else {
@@ -329,11 +370,11 @@ class edge_t extends cell_t {
   ) {
     let start_and_end = new start_and_end_t ()
     let dom = start_and_end.as_spherical ()
-    let map = new Map ([
-      [start_and_end.start.toString (), start],
-      [start_and_end.end.toString (), end],
+    let dic = new dic_t <id_t, id_t> () .set_array ([
+      [start_and_end.start, start],
+      [start_and_end.end, end],
     ])
-    super (dom, com, map)
+    super (dom, com, dic)
     this.start = start
     this.end = end
   }
@@ -400,17 +441,17 @@ class face_t extends cell_t {
   ) {
     let size = circuit.length
     let dom = new polygon_t (size)
-    let map = new Map ()
+    let dic = new dic_t <id_t, id_t> ()
     for (let i = 0; i < size; i += 1) {
       let src = dom.edge_array [i]
       let src_endpoints = dom.get_endpoints (src)
       let tar = circuit [i]
       let tar_endpoints = com.get_endpoints (tar)
-      map.set (src, tar)
-      map.set (src_endpoints.start, tar_endpoints.start)
-      map.set (src_endpoints.end, tar_endpoints.end)
+      dic.set (src, tar)
+      dic.set (src_endpoints.start, tar_endpoints.start)
+      dic.set (src_endpoints.end, tar_endpoints.end)
     }
-    super (dom, com, map)
+    super (dom, com, dic)
     this.circuit = circuit
   }
 }
