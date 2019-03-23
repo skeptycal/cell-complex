@@ -17,11 +17,11 @@ class id_t {
   }
 
   toString (): string {
-    return [this.dim, this.ser] .toString ()
+    return `${this.dim}:${this.ser}`
   }
 
   static parse (str: string): id_t {
-    let words = str.split (",")
+    let words = str.split (":")
     let dim = parseInt (words [0])
     let ser = parseInt (words [1])
     return new id_t (dim, ser)
@@ -33,20 +33,17 @@ class id_t {
 }
 
 export
-class cmap_t {
-  /**
-   * "cmap" is a short for "continuous map".
-   */
+class continuous_map_t {
+  readonly continuous_map_evidence
+  : continuous_map_evidence_t
+
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
     readonly dic: dic_t <id_t, cell_complex_t>,
   ) {
-    if (continuous_check (dom, cod, dic)) {
-      ////
-    } else {
-      throw new Error ("continuous check failed")
-    }
+    this.continuous_map_evidence =
+      continuous_map_check (dom, cod, dic)
   }
 
   get (id: id_t) {
@@ -55,17 +52,23 @@ class cmap_t {
 }
 
 export
-function continuous_check (
-  dom: cell_complex_t,
-  cod: cell_complex_t,
-  dic: dic_t <id_t, cell_complex_t>,
-): boolean {
-  // [todo]
-  return true
+class continuous_map_evidence_t {
+  constructor () {}
 }
 
 export
-class cell_t extends cmap_t {
+function continuous_map_check (
+  dom: cell_complex_t,
+  cod: cell_complex_t,
+  dic: dic_t <id_t, cell_complex_t>,
+): continuous_map_evidence_t {
+  let evidence = new continuous_map_evidence_t ()
+  // [todo]
+  return evidence
+}
+
+export
+class cell_t extends continuous_map_t {
   readonly boundary: spherical_complex_t
 
   constructor (
@@ -154,22 +157,18 @@ class cell_complex_t {
     return this.cell_dic.get (id)
   }
 
-  // product (that: cell_complex_t): product_complex_t {
-  //   [todo]
-  // }
-
   gen_id (dim: number): id_t {
     let ser: number
     if (dim === 0) {
       ser = 0
       for (let id of this.point_array) {
-        ser = Math.max (ser, id.ser)
+        ser = Math.max (ser, id.ser) + 1
       }
     } else {
       ser = 0
       for (let [id, _cell] of this.cell_dic.to_array ()) {
         if (id.dim === dim) {
-          ser = Math.max (ser, id.ser)
+          ser = Math.max (ser, id.ser) + 1
         }
       }
     }
@@ -227,6 +226,13 @@ class cell_complex_t {
   chain (id_array: Array <id_t>): chain_t {
     return new chain_t (this, id_array)
   }
+
+  as_builder (): cell_complex_builder_t {
+    let bui = new cell_complex_builder_t ()
+    bui.point_array = this.get_point_array ()
+    bui.cell_dic = this.get_cell_dic ()
+    return bui
+  }
 }
 
 export
@@ -263,15 +269,9 @@ class chain_t {
     readonly id_array: Array <id_t>,
   ) {}
 
-  //   closure (): cell_complex_t {
-  //     let com = new cell_complex_t ()
-  //     cell_complex_closure (this.cell_complex, this.id_array, com)
-  //     return com
-  //   }
-
   closure (): cell_complex_t {
     let bui = new cell_complex_builder_t ()
-    cell_complex_closure (
+    sub_cell_complex_closure (
       this.cell_complex,
       this.id_array,
       bui)
@@ -279,7 +279,7 @@ class chain_t {
   }
 }
 
-function cell_complex_closure (
+function sub_cell_complex_closure (
   cell_complex: cell_complex_t,
   id_array: Array <id_t>,
   bui: cell_complex_builder_t,
@@ -301,7 +301,7 @@ function cell_complex_closure (
           let point_array = image.get_point_array ()
           let cell_array = image.get_cell_dic () .key_array ()
           let next_id_array = point_array.concat (cell_array)
-          cell_complex_closure (
+          sub_cell_complex_closure (
             cell_complex,
             next_id_array,
             bui)
@@ -311,14 +311,17 @@ function cell_complex_closure (
   }
 }
 
-// export
-// class product_complex_t extends cell_complex_t {
-//   constructor () {}
-// }
-
 export
 class bounfold_evidence_t {
   constructor () {}
+}
+
+function bounfold_check (
+  cell_complex: cell_complex_t
+): bounfold_evidence_t {
+  let evidence = new bounfold_evidence_t ()
+  // [todo]
+  return evidence
 }
 
 /**
@@ -326,32 +329,39 @@ class bounfold_evidence_t {
  */
 export
 class bounfold_t extends cell_complex_t {
-  readonly evidence: bounfold_evidence_t
+  readonly bounfold_evidence
+  : bounfold_evidence_t
 
-  constructor () {
-    super ()
-    // [todo] check
-    this.evidence = new bounfold_evidence_t ()
+  constructor (cell_complex: cell_complex_t) {
+    super (cell_complex.as_builder ())
+    this.bounfold_evidence = bounfold_check (this)
   }
 }
 
 export
 class spherical_complex_evidence_t {
-   constructor () {}
+  constructor () {}
+}
+
+function spherical_complex_check (
+  cell_complex: cell_complex_t
+): spherical_complex_evidence_t {
+  let evidence = new spherical_complex_evidence_t ()
+  // [todo]
+  return evidence
 }
 
 export
 class spherical_complex_t extends cell_complex_t {
-  readonly evidence: spherical_complex_evidence_t
+  readonly spherical_complex_evidence
+  : spherical_complex_evidence_t
 
   constructor (
     cell_complex: cell_complex_t
   ) {
-    super ()
-    this.point_array = cell_complex.get_point_array ()
-    this.cell_dic = cell_complex.get_cell_dic ()
-    // [todo] check
-    this.evidence = new spherical_complex_evidence_t ()
+    super (cell_complex.as_builder ())
+    this.spherical_complex_evidence =
+      spherical_complex_check (this)
   }
 }
 

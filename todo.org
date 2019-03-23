@@ -1,5 +1,5 @@
-- bounfold_t check
-- cmap_t check
+- bounfold_check
+- continuous_map_check
   - check each id in dic -- from low dim to high dim
   - value of dic must be bounfold_t
   - image of id's cell's boundary can cover the bounfold_t exactly once
