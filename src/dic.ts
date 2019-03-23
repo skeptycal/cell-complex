@@ -31,7 +31,7 @@ class dic_t <K , V> {
     return v
   }
 
-  set_array (array: Array <[K, V]>): dic_t <K, V> {
+  update_from_array (array: Array <[K, V]>): dic_t <K, V> {
     for (let [k, v] of array) {
       this.set (k, v)
     }

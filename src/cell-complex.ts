@@ -40,7 +40,7 @@ class cmap_t {
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
-    readonly dic: dic_t <id_t, id_t>,
+    readonly dic: dic_t <id_t, homogeneous_chain_t>,
   ) {
     if (continuous_check (dom, cod, dic)) {
       ////
@@ -58,7 +58,7 @@ export
 function continuous_check (
   dom: cell_complex_t,
   cod: cell_complex_t,
-  dic: dic_t <id_t, id_t>,
+  dic: dic_t <id_t, homogeneous_chain_t>,
 ): boolean {
   // [todo]
   return true
@@ -71,7 +71,7 @@ class cell_t extends cmap_t {
   constructor (
     dom: cell_complex_t,
     cod: cell_complex_t,
-    dic: dic_t <id_t, id_t>,
+    dic: dic_t <id_t, homogeneous_chain_t>,
   ) {
     super (dom, cod, dic)
     this.boundary = dom.as_spherical ()
@@ -387,9 +387,10 @@ class edge_t extends cell_t {
   ) {
     let start_and_end = new start_and_end_t ()
     let dom = start_and_end
-    let dic = new dic_t <id_t, id_t> () .set_array ([
-      [start_and_end.start, start],
-      [start_and_end.end, end],
+    let dic = new dic_t <id_t, homogeneous_chain_t> (
+    ) .update_from_array ([
+      [start_and_end.start, com.chain ([start]) .as_homogeneous ()],
+      [start_and_end.end, com.chain ([end]) .as_homogeneous ()],
     ])
     super (dom, com, dic)
     this.start = start
@@ -457,15 +458,17 @@ class face_t extends cell_t {
   ) {
     let size = circuit.length
     let dom = new polygon_t (size)
-    let dic = new dic_t <id_t, id_t> ()
+    let dic = new dic_t <id_t, homogeneous_chain_t> ()
     for (let i = 0; i < size; i += 1) {
       let src = dom.edge_array [i]
       let src_endpoints = dom.get_endpoints (src)
       let tar = circuit [i]
       let tar_endpoints = com.get_endpoints (tar)
-      dic.set (src, tar)
-      dic.set (src_endpoints.start, tar_endpoints.start)
-      dic.set (src_endpoints.end, tar_endpoints.end)
+      dic.set (src, com.chain ([tar]) .as_homogeneous ())
+      dic.set (src_endpoints.start,
+               com.chain ([tar_endpoints.start]) .as_homogeneous ())
+      dic.set (src_endpoints.end,
+               com.chain ([tar_endpoints.end]) .as_homogeneous ())
     }
     super (dom, com, dic)
     this.circuit = circuit

@@ -1,4 +1,3 @@
-- id_t -> homogeneous_chain_t
 - cmap_t.dic -- dic_t <id_t, id_t> -> dic_t <id_t, homogeneous_chain_t>
 - bounfold_t check
 - cmap_t check
