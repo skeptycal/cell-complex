@@ -61,12 +61,15 @@ function continuous_check (
 
 export
 class cell_t extends cmap_t {
+  readonly boundary: spherical_complex_t
+
   constructor (
-    readonly boundary: spherical_complex_t,
+    boundary: cell_complex_t,
     readonly cell_complex: cell_complex_t,
     readonly attaching: dic_t <id_t, id_t>,
   ) {
     super (boundary, cell_complex, attaching)
+    this.boundary = boundary.as_spherical ()
   }
 
   dim (): number {
@@ -188,11 +191,6 @@ class cell_complex_t {
     return this.attach (new face_t (this, circuit))
   }
 
-  spherical_p (): boolean {
-    // [todo]
-    return true
-  }
-
   as_spherical (): spherical_complex_t {
     return new spherical_complex_t (this)
   }
@@ -250,16 +248,13 @@ class homogeneous_chain_evidence_t {
 
 export
 class homogeneous_chain_t extends chain_t {
-  protected info: {
-    homogeneous_chain_evidence: homogeneous_chain_evidence_t
-  }
+  readonly evidence: homogeneous_chain_evidence_t
 
   constructor (chain: chain_t) {
     super (chain.cell_complex)
     this.add_id_array (chain.get_id_array ())
     // [todo] check
-    let homogeneous_chain_evidence = new homogeneous_chain_evidence_t ()
-    this.info = { homogeneous_chain_evidence }
+    this.evidence = new homogeneous_chain_evidence_t ()
   }
 }
 
@@ -276,14 +271,12 @@ class manifold_evidence_t {
 
 export
 class manifold_t extends cell_complex_t {
-  protected info: {
-    manifold_evidence: manifold_evidence_t
-  }
+  readonly evidence: manifold_evidence_t
 
   constructor () {
     super ()
-    let manifold_evidence = new manifold_evidence_t ()
-    this.info = { manifold_evidence }
+    // [todo] check
+    this.evidence = new manifold_evidence_t ()
   }
 }
 
@@ -294,27 +287,18 @@ class spherical_complex_evidence_t {
 
 export
 class spherical_complex_t extends cell_complex_t {
-  protected info: {
-    spherical_complex_evidence: spherical_complex_evidence_t
-  }
+  readonly evidence: spherical_complex_evidence_t
 
   constructor (
-    cell_complex: cell_complex_t = new cell_complex_t ()
+    cell_complex: cell_complex_t
   ) {
     super ()
-    if (cell_complex.spherical_p ()) {
-      this.point_array = cell_complex.get_point_array ()
-      this.cell_dic = cell_complex.get_cell_dic ()
-      let spherical_complex_evidence = new spherical_complex_evidence_t ()
-      this.info = { spherical_complex_evidence }
-    } else {
-      throw new Error ("spherical check failed")
-    }
+    this.point_array = cell_complex.get_point_array ()
+    this.cell_dic = cell_complex.get_cell_dic ()
+    // [todo] check
+    this.evidence = new spherical_complex_evidence_t ()
   }
 }
-
-// Since typescript has no multiple inheritance,
-// we use explicit `.as_*` to mimic this missing feature.
 
 //// 0 dimension
 
@@ -379,7 +363,7 @@ class edge_t extends cell_t {
     end: id_t,
   ) {
     let start_and_end = new start_and_end_t ()
-    let dom = start_and_end.as_spherical ()
+    let dom = start_and_end
     let dic = new dic_t <id_t, id_t> () .set_array ([
       [start_and_end.start, start],
       [start_and_end.end, end],
@@ -406,7 +390,7 @@ class interval_t extends cell_complex_t {
 }
 
 export
-class polygon_t extends spherical_complex_t {
+class polygon_t extends cell_complex_t {
   edge_array: Array <id_t>
   size: number
 
