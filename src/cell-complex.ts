@@ -11,6 +11,11 @@ class id_t {
     readonly ser: number,
   ) {}
 
+  eq (that: id_t): boolean {
+    return ((this.dim === that.dim) &&
+            (this.ser === that.ser))
+  }
+
   toString (): string {
     return [this.dim, this.ser] .toString ()
   }
@@ -105,6 +110,18 @@ class cell_complex_t {
   dim (): number {
     let array = this.get_cell_id_array () .map (id => id.dim)
     return Math.max (0, ...array)
+  }
+
+  point_p (id: id_t): boolean {
+    return this.point_array.some ((x) => id.eq (x))
+  }
+
+  dim_of (id: id_t): number {
+    if (this.point_p (id)) {
+      return 0
+    } else {
+      return this.get_cell (id) .dim ()
+    }
   }
 
   get_point_array (): Array <id_t> {
@@ -213,28 +230,16 @@ class cell_complex_t {
   }
 
   chain (id_array: Array <id_t>): chain_t {
-    return new chain_t (this) .add_id_array (id_array)
+    return new chain_t (this, id_array)
   }
 }
 
 export
 class chain_t {
-  protected id_array: Array <id_t>
-
   constructor (
-    readonly cell_complex: cell_complex_t
-  ) {
-    this.id_array = new Array ()
-  }
-
-  get_id_array (): Array <id_t> {
-    return this.id_array.slice ()
-  }
-
-  add_id_array (id_array: Array <id_t>): chain_t {
-    this.id_array = this.id_array.concat (id_array)
-    return this
-  }
+    readonly cell_complex: cell_complex_t,
+    readonly id_array: Array <id_t>,
+  ) {}
 
   as_homogeneous (): homogeneous_chain_t {
     return new homogeneous_chain_t (this)
@@ -243,7 +248,25 @@ class chain_t {
 
 export
 class homogeneous_chain_evidence_t {
-  constructor () {}
+  constructor (
+    readonly dim: number,
+    readonly length: number,
+  ) {}
+}
+
+function homogeneous_chain_check (
+  chain: chain_t
+): homogeneous_chain_evidence_t {
+  let com = chain.cell_complex
+  let id0 = chain.id_array [0]
+  let dim = com.dim_of (id0)
+  for (let id of chain.id_array) {
+    if (com.dim_of (id) !== dim) {
+      throw new Error ("meet non homogeneous id")
+    }
+  }
+  let length = chain.id_array.length
+  return new homogeneous_chain_evidence_t (dim, length)
 }
 
 export
@@ -251,10 +274,8 @@ class homogeneous_chain_t extends chain_t {
   readonly evidence: homogeneous_chain_evidence_t
 
   constructor (chain: chain_t) {
-    super (chain.cell_complex)
-    this.add_id_array (chain.get_id_array ())
-    // [todo] check
-    this.evidence = new homogeneous_chain_evidence_t ()
+    super (chain.cell_complex, chain.id_array)
+    this.evidence = homogeneous_chain_check (chain)
   }
 }
 
