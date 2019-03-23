@@ -31,6 +31,8 @@
 
 ![spot-the-cow](https://github.com/xieyuheng/image-link/blob/master/homotopy/spot-the-cow.gif)
 
+------
+
 ## Contributing
 
 We enforce C4 as collaboration protocol :
