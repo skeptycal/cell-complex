@@ -40,7 +40,7 @@ class cmap_t {
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
-    readonly dic: dic_t <id_t, homogeneous_chain_t>,
+    readonly dic: dic_t <id_t, chain_t>,
   ) {
     if (continuous_check (dom, cod, dic)) {
       ////
@@ -58,7 +58,7 @@ export
 function continuous_check (
   dom: cell_complex_t,
   cod: cell_complex_t,
-  dic: dic_t <id_t, homogeneous_chain_t>,
+  dic: dic_t <id_t, chain_t>,
 ): boolean {
   // [todo]
   return true
@@ -71,7 +71,7 @@ class cell_t extends cmap_t {
   constructor (
     dom: cell_complex_t,
     cod: cell_complex_t,
-    dic: dic_t <id_t, homogeneous_chain_t>,
+    dic: dic_t <id_t, chain_t>,
   ) {
     super (dom, cod, dic)
     this.boundary = dom.as_spherical ()
@@ -99,16 +99,9 @@ class cell_complex_t {
     this.cell_dic = new dic_t ()
   }
 
-  get_cell_id_array (): Array <id_t> {
-    let array = new Array <id_t> ()
-    for (let [id, _cell] of this.cell_dic.to_array ()) {
-      array.push (id)
-    }
-    return array
-  }
-
   dim (): number {
-    let array = this.get_cell_id_array () .map (id => id.dim)
+    let array = this.cell_dic.to_array ()
+      .map (([id, _cell]) => id.dim)
     return Math.max (0, ...array)
   }
 
@@ -169,12 +162,15 @@ class cell_complex_t {
   gen_id (dim: number): id_t {
     let ser: number
     if (dim === 0) {
-      ser = this.point_array.length
+      ser = 0
+      for (let id of this.point_array) {
+        ser = Math.max (ser, id.ser)
+      }
     } else {
       ser = 0
-      for (let id of this.get_cell_id_array ()) {
+      for (let [id, _cell] of this.cell_dic.to_array ()) {
         if (id.dim === dim) {
-          ser += 1
+          ser = Math.max (ser, id.ser)
         }
       }
     }
@@ -241,41 +237,10 @@ class chain_t {
     readonly id_array: Array <id_t>,
   ) {}
 
-  as_homogeneous (): homogeneous_chain_t {
-    return new homogeneous_chain_t (this)
-  }
-}
+  closure (): cell_complex_t {
+    let com = new cell_complex_t ()
 
-export
-class homogeneous_chain_evidence_t {
-  constructor (
-    readonly dim: number,
-    readonly length: number,
-  ) {}
-}
-
-function homogeneous_chain_check (
-  chain: chain_t
-): homogeneous_chain_evidence_t {
-  let com = chain.cell_complex
-  let id0 = chain.id_array [0]
-  let dim = com.dim_of (id0)
-  for (let id of chain.id_array) {
-    if (com.dim_of (id) !== dim) {
-      throw new Error ("meet non homogeneous id")
-    }
-  }
-  let length = chain.id_array.length
-  return new homogeneous_chain_evidence_t (dim, length)
-}
-
-export
-class homogeneous_chain_t extends chain_t {
-  readonly evidence: homogeneous_chain_evidence_t
-
-  constructor (chain: chain_t) {
-    super (chain.cell_complex, chain.id_array)
-    this.evidence = homogeneous_chain_check (chain)
+    return com
   }
 }
 
@@ -387,11 +352,13 @@ class edge_t extends cell_t {
   ) {
     let start_and_end = new start_and_end_t ()
     let dom = start_and_end
-    let dic = new dic_t <id_t, homogeneous_chain_t> (
-    ) .update_from_array ([
-      [start_and_end.start, com.chain ([start]) .as_homogeneous ()],
-      [start_and_end.end, com.chain ([end]) .as_homogeneous ()],
-    ])
+    let dic = new dic_t <id_t, chain_t> ()
+    dic.set (
+      start_and_end.start,
+      com.chain ([start]))
+    dic.set (
+      start_and_end.end,
+      com.chain ([end]))
     super (dom, com, dic)
     this.start = start
     this.end = end
@@ -458,17 +425,21 @@ class face_t extends cell_t {
   ) {
     let size = circuit.length
     let dom = new polygon_t (size)
-    let dic = new dic_t <id_t, homogeneous_chain_t> ()
+    let dic = new dic_t <id_t, chain_t> ()
     for (let i = 0; i < size; i += 1) {
       let src = dom.edge_array [i]
       let src_endpoints = dom.get_endpoints (src)
       let tar = circuit [i]
       let tar_endpoints = com.get_endpoints (tar)
-      dic.set (src, com.chain ([tar]) .as_homogeneous ())
-      dic.set (src_endpoints.start,
-               com.chain ([tar_endpoints.start]) .as_homogeneous ())
-      dic.set (src_endpoints.end,
-               com.chain ([tar_endpoints.end]) .as_homogeneous ())
+      dic.set (
+        src,
+        com.chain ([tar]))
+      dic.set (
+        src_endpoints.start,
+        com.chain ([tar_endpoints.start]))
+      dic.set (
+        src_endpoints.end,
+        com.chain ([tar_endpoints.end]))
     }
     super (dom, com, dic)
     this.circuit = circuit

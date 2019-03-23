@@ -31,13 +31,6 @@ class dic_t <K , V> {
     return v
   }
 
-  update_from_array (array: Array <[K, V]>): dic_t <K, V> {
-    for (let [k, v] of array) {
-      this.set (k, v)
-    }
-    return this
-  }
-
   to_array (): Array <[K, V]> {
     let array = new Array <[K, V]> ()
     for (let [s, v] of this.val_map) {
