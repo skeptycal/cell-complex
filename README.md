@@ -2,7 +2,8 @@
 
 ## Docs
 
-- [paper](https://xieyuheng.github.io/writing/investigations-into-cell-complex.html) -- Investigations into Cell Complex
+- [paper](https://xieyuheng.github.io/writing/investigations-into-cell-complex.html)
+  -- "Investigations into Cell Complex", by Xie Yuheng, 2019
 
 - wikipedia
   - [CW complex](https://en.wikipedia.org/wiki/CW_complex)
