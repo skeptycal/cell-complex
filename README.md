@@ -1,4 +1,4 @@
-# a cell-complex based algebraic topology library
+# A cell-complex Based Algebraic Topology Library
 
 ## Docs
 

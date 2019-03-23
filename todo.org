@@ -1,3 +1,4 @@
+- vertex_figure_t
 - pure_complex_t
   an n-dimensional complex is said to be pure
   if each k cell (k < n) is a face of at least one n-dimensional cell
