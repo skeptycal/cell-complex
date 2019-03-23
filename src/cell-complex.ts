@@ -325,7 +325,7 @@ function bounfold_check (
 }
 
 /**
- * [[bounfold_t]] models manifold with boundary
+ * [[bounfold_t]] -- manifold with boundary
  */
 export
 class bounfold_t extends cell_complex_t {
