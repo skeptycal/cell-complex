@@ -37,7 +37,7 @@ class cmap_t {
     readonly cod: cell_complex_t,
     readonly dic: dic_t <id_t, id_t>,
   ) {
-    if (continuous_map_p (dom, cod, dic)) {
+    if (continuous_check (dom, cod, dic)) {
       ////
     } else {
       throw new Error ("continuous check failed")
@@ -50,7 +50,7 @@ class cmap_t {
 }
 
 export
-function continuous_map_p (
+function continuous_check (
   dom: cell_complex_t,
   cod: cell_complex_t,
   dic: dic_t <id_t, id_t>,
@@ -194,8 +194,7 @@ class cell_complex_t {
   }
 
   as_spherical (): spherical_complex_t {
-    let spherical_complex = new spherical_complex_t (this)
-    return spherical_complex
+    return new spherical_complex_t (this)
   }
 
   get_edge (id: id_t): edge_t {
@@ -214,6 +213,54 @@ class cell_complex_t {
       return { start: edge.start, end: edge.end }
     }
   }
+
+  chain (id_array: Array <id_t>): chain_t {
+    return new chain_t (this) .add_id_array (id_array)
+  }
+}
+
+export
+class chain_t {
+  protected id_array: Array <id_t>
+
+  constructor (
+    readonly cell_complex: cell_complex_t
+  ) {
+    this.id_array = new Array ()
+  }
+
+  get_id_array (): Array <id_t> {
+    return this.id_array.slice ()
+  }
+
+  add_id_array (id_array: Array <id_t>): chain_t {
+    this.id_array = this.id_array.concat (id_array)
+    return this
+  }
+
+  as_homogeneous (): homogeneous_chain_t {
+    return new homogeneous_chain_t (this)
+  }
+}
+
+export
+class homogeneous_chain_evidence_t {
+  constructor () {}
+}
+
+export
+class homogeneous_chain_t extends chain_t {
+  protected info: {
+    homogeneous_chain_evidence: homogeneous_chain_evidence_t
+  }
+
+  constructor (chain: chain_t) {
+    super (chain.cell_complex)
+    this.add_id_array (chain.get_id_array ())
+    // [todo] check
+    let homogeneous_chain_evidence = new homogeneous_chain_evidence_t ()
+    this.info = { homogeneous_chain_evidence }
+  }
 }
 
 // export
@@ -229,26 +276,25 @@ class manifold_evidence_t {
 
 export
 class manifold_t extends cell_complex_t {
-  manifold_evidence: manifold_evidence_t
+  protected info: {
+    manifold_evidence: manifold_evidence_t
+  }
 
   constructor () {
     super ()
-    this.manifold_evidence = new manifold_evidence_t ()
+    let manifold_evidence = new manifold_evidence_t ()
+    this.info = { manifold_evidence }
   }
 }
 
 export
 class spherical_complex_evidence_t {
-  spherical_complex_evidence: string
-
-  constructor () {
-    this.spherical_complex_evidence = "[todo]"
-  }
+   constructor () {}
 }
 
 export
 class spherical_complex_t extends cell_complex_t {
-  info: {
+  protected info: {
     spherical_complex_evidence: spherical_complex_evidence_t
   }
 
@@ -259,8 +305,7 @@ class spherical_complex_t extends cell_complex_t {
     if (cell_complex.spherical_p ()) {
       this.point_array = cell_complex.get_point_array ()
       this.cell_dic = cell_complex.get_cell_dic ()
-      let spherical_complex_evidence =
-        new spherical_complex_evidence_t ()
+      let spherical_complex_evidence = new spherical_complex_evidence_t ()
       this.info = { spherical_complex_evidence }
     } else {
       throw new Error ("spherical check failed")
