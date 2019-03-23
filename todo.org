@@ -1,11 +1,11 @@
 - homogeneous_chain_t check
 - id_t -> homogeneous_chain_t
 - cmap_t.dic -- dic_t <id_t, id_t> -> dic_t <id_t, homogeneous_chain_t>
-- manifold_t
-  - initiation combinatorial to topology -- maurice frechet
-  - seifert
-- continuous_map_p
-  continuous_map_evidence_t
+- bounfold_t check
+- cmap_t check
+  - check each id in dic -- from low dim to high dim
+  - closure of homogeneous_chain_t (a subcomplex) should be bounfold_t
+  - image of id's cell's boundary can cover the bounfold_t exactly once
 - generaic space_t
   for product_complex_t and quotient_complex_t
 - generaic complex_t
@@ -13,5 +13,5 @@
 - product_complex_t
 - quotient_complex_t -- self-gluing
 - the boundary of the boundary of a cell_complex_t should be zero
-  even if the cell_complex_t is not a manifold_t
+  even if the cell_complex_t is not a bounfold_t
 - simple generated geometry -- for polyhedron first

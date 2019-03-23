@@ -64,12 +64,12 @@ class cell_t extends cmap_t {
   readonly boundary: spherical_complex_t
 
   constructor (
-    boundary: cell_complex_t,
-    readonly cell_complex: cell_complex_t,
-    readonly attaching: dic_t <id_t, id_t>,
+    dom: cell_complex_t,
+    cod: cell_complex_t,
+    dic: dic_t <id_t, id_t>,
   ) {
-    super (boundary, cell_complex, attaching)
-    this.boundary = boundary.as_spherical ()
+    super (dom, cod, dic)
+    this.boundary = dom.as_spherical ()
   }
 
   dim (): number {
@@ -264,19 +264,21 @@ class homogeneous_chain_t extends chain_t {
 // }
 
 export
-class manifold_evidence_t {
+class bounfold_evidence_t {
   constructor () {}
 }
 
-
+/**
+ * [[bounfold_t]] models manifold with boundary
+ */
 export
-class manifold_t extends cell_complex_t {
-  readonly evidence: manifold_evidence_t
+class bounfold_t extends cell_complex_t {
+  readonly evidence: bounfold_evidence_t
 
   constructor () {
     super ()
     // [todo] check
-    this.evidence = new manifold_evidence_t ()
+    this.evidence = new bounfold_evidence_t ()
   }
 }
 
