@@ -40,6 +40,14 @@ class dic_t <K , V> {
     return array
   }
 
+  key_array (): Array <K> {
+    return new Array (...this.key_map.values ())
+  }
+
+  value_array (): Array <V> {
+    return new Array (...this.val_map.values ())
+  }
+
   clone (): dic_t <K, V> {
     let dic = new dic_t <K, V> ()
     dic.val_map = new Map (this.val_map)

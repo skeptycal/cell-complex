@@ -1,8 +1,9 @@
 - cmap_t.dic -- dic_t <id_t, id_t> -> dic_t <id_t, homogeneous_chain_t>
+- builder pattern for cell_complex_t
 - bounfold_t check
 - cmap_t check
   - check each id in dic -- from low dim to high dim
-  - closure of homogeneous_chain_t (a subcomplex) should be bounfold_t
+  - value of dic must be bounfold_t
   - image of id's cell's boundary can cover the bounfold_t exactly once
 - generaic space_t
   for product_complex_t and quotient_complex_t

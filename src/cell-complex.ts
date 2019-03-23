@@ -40,7 +40,7 @@ class cmap_t {
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
-    readonly dic: dic_t <id_t, chain_t>,
+    readonly dic: dic_t <id_t, cell_complex_t>,
   ) {
     if (continuous_check (dom, cod, dic)) {
       ////
@@ -58,7 +58,7 @@ export
 function continuous_check (
   dom: cell_complex_t,
   cod: cell_complex_t,
-  dic: dic_t <id_t, chain_t>,
+  dic: dic_t <id_t, cell_complex_t>,
 ): boolean {
   // [todo]
   return true
@@ -71,7 +71,7 @@ class cell_t extends cmap_t {
   constructor (
     dom: cell_complex_t,
     cod: cell_complex_t,
-    dic: dic_t <id_t, chain_t>,
+    dic: dic_t <id_t, cell_complex_t>,
   ) {
     super (dom, cod, dic)
     this.boundary = dom.as_spherical ()
@@ -82,17 +82,13 @@ class cell_t extends cmap_t {
   }
 }
 
-/**
- * The interface functions for side-effects are protected.
- * After constructed, a cell-complex_t is pure.
- */
 export
 class cell_complex_t {
   /**
    * Points are special, because a point has not boundary.
    */
-  protected point_array: Array <id_t>
-  protected cell_dic: dic_t <id_t, cell_t>
+  point_array: Array <id_t>
+  cell_dic: dic_t <id_t, cell_t>
 
   constructor () {
     this.point_array = new Array ()
@@ -177,6 +173,18 @@ class cell_complex_t {
     return new id_t (dim, ser)
   }
 
+  push_point (id: id_t) {
+    if (id.dim !== 0) {
+      throw new Error ("dimension mismatch")
+    } else {
+      this.point_array.push (id)
+    }
+  }
+
+  set_cell (id: id_t, cell: cell_t) {
+    this.cell_dic.set (id, cell)
+  }
+
   protected inc_points (n: number): Array <id_t> {
     let array = new Array <id_t> ()
     let size = this.point_array.length
@@ -239,8 +247,38 @@ class chain_t {
 
   closure (): cell_complex_t {
     let com = new cell_complex_t ()
-
+    cell_complex_closure (this.cell_complex, this.id_array, com)
     return com
+  }
+}
+
+function cell_complex_closure (
+  cell_complex: cell_complex_t,
+  id_array: Array <id_t>,
+  com: cell_complex_t,
+): void {
+  for (let id of id_array) {
+    if (id.dim === 0) {
+      if (com.point_array.some ((x => id.eq (x)))) {
+        ////
+      } else {
+        com.push_point (id)
+      }
+    } else {
+      if (com.cell_dic.has (id)) {
+        ////
+      } else {
+        let cell = cell_complex.get_cell (id)
+        com.set_cell (id, cell)
+        for (let [_id, image] of cell.dic.to_array ()) {
+          cell_complex_closure (
+            cell_complex,
+            image.point_array.concat (
+              image.cell_dic.key_array ()),
+            com)
+        }
+      }
+    }
   }
 }
 
@@ -352,13 +390,13 @@ class edge_t extends cell_t {
   ) {
     let start_and_end = new start_and_end_t ()
     let dom = start_and_end
-    let dic = new dic_t <id_t, chain_t> ()
+    let dic = new dic_t <id_t, cell_complex_t> ()
     dic.set (
       start_and_end.start,
-      com.chain ([start]))
+      com.chain ([start]) .closure ())
     dic.set (
       start_and_end.end,
-      com.chain ([end]))
+      com.chain ([end]) .closure ())
     super (dom, com, dic)
     this.start = start
     this.end = end
@@ -425,7 +463,7 @@ class face_t extends cell_t {
   ) {
     let size = circuit.length
     let dom = new polygon_t (size)
-    let dic = new dic_t <id_t, chain_t> ()
+    let dic = new dic_t <id_t, cell_complex_t> ()
     for (let i = 0; i < size; i += 1) {
       let src = dom.edge_array [i]
       let src_endpoints = dom.get_endpoints (src)
@@ -433,13 +471,13 @@ class face_t extends cell_t {
       let tar_endpoints = com.get_endpoints (tar)
       dic.set (
         src,
-        com.chain ([tar]))
+        com.chain ([tar]) .closure ())
       dic.set (
         src_endpoints.start,
-        com.chain ([tar_endpoints.start]))
+        com.chain ([tar_endpoints.start]) .closure ())
       dic.set (
         src_endpoints.end,
-        com.chain ([tar_endpoints.end]))
+        com.chain ([tar_endpoints.end]) .closure ())
     }
     super (dom, com, dic)
     this.circuit = circuit
