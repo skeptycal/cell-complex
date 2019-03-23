@@ -1,5 +1,3 @@
-- cmap_t.dic -- dic_t <id_t, id_t> -> dic_t <id_t, homogeneous_chain_t>
-- builder pattern for cell_complex_t
 - bounfold_t check
 - cmap_t check
   - check each id in dic -- from low dim to high dim

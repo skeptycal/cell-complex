@@ -87,12 +87,15 @@ class cell_complex_t {
   /**
    * Points are special, because a point has not boundary.
    */
-  point_array: Array <id_t>
-  cell_dic: dic_t <id_t, cell_t>
+  protected point_array: Array <id_t>
+  protected cell_dic: dic_t <id_t, cell_t>
 
-  constructor () {
-    this.point_array = new Array ()
-    this.cell_dic = new dic_t ()
+  constructor (
+    builder: cell_complex_builder_t =
+      new cell_complex_builder_t ()
+  ) {
+    this.point_array = builder.point_array.slice ()
+    this.cell_dic = builder.cell_dic.clone ()
   }
 
   dim (): number {
@@ -173,18 +176,6 @@ class cell_complex_t {
     return new id_t (dim, ser)
   }
 
-  push_point (id: id_t) {
-    if (id.dim !== 0) {
-      throw new Error ("dimension mismatch")
-    } else {
-      this.point_array.push (id)
-    }
-  }
-
-  set_cell (id: id_t, cell: cell_t) {
-    this.cell_dic.set (id, cell)
-  }
-
   protected inc_points (n: number): Array <id_t> {
     let array = new Array <id_t> ()
     let size = this.point_array.length
@@ -239,43 +230,81 @@ class cell_complex_t {
 }
 
 export
+class cell_complex_builder_t {
+  point_array: Array <id_t>
+  cell_dic: dic_t <id_t, cell_t>
+
+  constructor () {
+    this.point_array = new Array ()
+    this.cell_dic = new dic_t ()
+  }
+
+  push_point (id: id_t) {
+    if (id.dim !== 0) {
+      throw new Error ("dimension mismatch")
+    } else {
+      this.point_array.push (id)
+    }
+  }
+
+  set_cell (id: id_t, cell: cell_t) {
+    this.cell_dic.set (id, cell)
+  }
+
+  build (): cell_complex_t {
+    return new cell_complex_t (this)
+  }
+}
+
+export
 class chain_t {
   constructor (
     readonly cell_complex: cell_complex_t,
     readonly id_array: Array <id_t>,
   ) {}
 
+  //   closure (): cell_complex_t {
+  //     let com = new cell_complex_t ()
+  //     cell_complex_closure (this.cell_complex, this.id_array, com)
+  //     return com
+  //   }
+
   closure (): cell_complex_t {
-    let com = new cell_complex_t ()
-    cell_complex_closure (this.cell_complex, this.id_array, com)
-    return com
+    let bui = new cell_complex_builder_t ()
+    cell_complex_closure (
+      this.cell_complex,
+      this.id_array,
+      bui)
+    return bui.build ()
   }
 }
 
 function cell_complex_closure (
   cell_complex: cell_complex_t,
   id_array: Array <id_t>,
-  com: cell_complex_t,
+  bui: cell_complex_builder_t,
 ): void {
   for (let id of id_array) {
     if (id.dim === 0) {
-      if (com.point_array.some ((x => id.eq (x)))) {
+      if (bui.point_array.some ((x => id.eq (x)))) {
         ////
       } else {
-        com.push_point (id)
+        bui.push_point (id)
       }
     } else {
-      if (com.cell_dic.has (id)) {
+      if (bui.cell_dic.has (id)) {
         ////
       } else {
         let cell = cell_complex.get_cell (id)
-        com.set_cell (id, cell)
+        bui.set_cell (id, cell)
         for (let [_id, image] of cell.dic.to_array ()) {
+          let point_array = image.get_point_array ()
+          let cell_array = image.get_cell_dic () .key_array ()
+          let next_id_array = point_array.concat (cell_array)
           cell_complex_closure (
             cell_complex,
-            image.point_array.concat (
-              image.cell_dic.key_array ()),
-            com)
+            next_id_array,
+            bui)
         }
       }
     }
