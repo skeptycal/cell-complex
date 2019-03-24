@@ -1,6 +1,6 @@
-export type Array1d = Array <number>
-export type Array2d = Array <Array <number>>
-export type Array3d = Array <Array <Array <number>>>
+type Array1d = Array <number>
+type Array2d = Array <Array <number>>
+type Array3d = Array <Array <Array <number>>>
 
 /**
  * strides based row-major ndarray of number
@@ -133,6 +133,14 @@ class ndarray_t {
     let x_length = array[0][0].length
     let buffer = Float64Array.from (array.flat (2))
     let shape = [z_length, y_length, x_length]
+    let strides = ndarray_t.init_strides (shape)
+    return new ndarray_t (buffer, shape, strides)
+  }
+
+  static from_buffer (
+    shape: Array <number>,
+    buffer: Float64Array,
+  ): ndarray_t {
     let strides = ndarray_t.init_strides (shape)
     return new ndarray_t (buffer, shape, strides)
   }
