@@ -1,4 +1,4 @@
-import * as tensor from "./tensor"
+import { ndarray_t } from "./ndarray"
 
 export
 class vector_t {
