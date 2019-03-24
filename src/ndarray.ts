@@ -7,18 +7,22 @@ export type Array3d = Array <Array <Array <number>>>
  */
 export
 class ndarray_t {
-  readonly size: number
-
   constructor (
     protected buffer: Float64Array,
     readonly shape: Array <number>,
     readonly strides: Array <number>,
     readonly offset: number = 0,
   ) {
-    this.size = shape.reduce ((acc, cur) => acc * cur)
+    // [todo] error handling
+    // - length of strides == length of shape
+    // - check buffer size
   }
 
-  static shape_to_strides (
+  get size (): number {
+    return this.shape.reduce ((acc, cur) => acc * cur)
+  }
+
+  static init_strides (
     shape: Array <number>
   ): Array <number> {
     let strides: Array <number> = []
@@ -31,6 +35,7 @@ class ndarray_t {
   }
 
   get_linear_index (index: Array <number>): number {
+    // [todo] error handling -- shape of index
     let linear_index = this.offset
     for (let i = 0; i < index.length; i += 1) {
       linear_index += index [i] * this.strides [i]
@@ -47,15 +52,16 @@ class ndarray_t {
   }
 
   protected linear_index_valid_p (i: number): boolean {
+    if (i < this.offset) { return false }
     i -= this.offset
     for (let [n, s] of this.strides.entries ()) {
-      if (Math.floor (i / s) >= this.shape [n]) {
-        return false
-      } else {
+      if (Math.floor (i / s) < this.shape [n]) {
         i = i % s
+      } else {
+        return false
       }
     }
-    return true
+    return i === 0
   }
 
   copy (): ndarray_t {
@@ -69,10 +75,11 @@ class ndarray_t {
     }
     return new ndarray_t (
       buffer, this.shape,
-      ndarray_t.shape_to_strides (this.shape))
+      ndarray_t.init_strides (this.shape))
   }
 
-  porj (index: Array <number | undefined>): ndarray_t {
+  proj (index: Array <number | undefined>): ndarray_t {
+    // [todo] error handling -- shape of index
     let shape = new Array <number> ()
     let strides = new Array <number> ()
     let offset = this.offset
@@ -88,6 +95,7 @@ class ndarray_t {
   }
 
   slice (index: Array <[number, number] | undefined>): ndarray_t {
+    // [todo] error handling -- shape of index
     let shape = this.shape
     let offset = this.offset
     for (let [k, v] of index.entries ()) {
@@ -104,7 +112,28 @@ class ndarray_t {
   static from_1darray (array: Array1d): ndarray_t {
     let buffer = Float64Array.from (array)
     let shape = [array.length]
-    let strides = ndarray_t.shape_to_strides (shape)
+    let strides = ndarray_t.init_strides (shape)
+    return new ndarray_t (buffer, shape, strides)
+  }
+
+  static from_2darray (array: Array2d): ndarray_t {
+    // [todo] error handling -- shape of array
+    let y_length = array.length
+    let x_length = array[0].length
+    let buffer = Float64Array.from (array.flat ())
+    let shape = [y_length, x_length]
+    let strides = ndarray_t.init_strides (shape)
+    return new ndarray_t (buffer, shape, strides)
+  }
+
+  static from_3darray (array: Array3d): ndarray_t {
+    // [todo] error handling -- shape of array
+    let z_length = array.length
+    let y_length = array[0].length
+    let x_length = array[0][0].length
+    let buffer = Float64Array.from (array.flat (2))
+    let shape = [z_length, y_length, x_length]
+    let strides = ndarray_t.init_strides (shape)
     return new ndarray_t (buffer, shape, strides)
   }
 }
