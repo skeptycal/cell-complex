@@ -1,8 +1,8 @@
 {
   "name": "cell-complex",
   "version": "0.0.14",
-  "license": "GPL-3.0-or-later",
   "author": "Xie Yuheng",
+  "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "git@github.com:xieyuheng/cell-complex.git"
