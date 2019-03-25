@@ -40,6 +40,13 @@ class dic_t <K , V> {
     return array
   }
 
+  *[Symbol.iterator] () {
+    for (let [s, v] of this.val_map) {
+      let k = this.key_map.get (s) as K
+      yield [k, v] as [K, V]
+    }
+  }
+
   key_array (): Array <K> {
     return new Array (...this.key_map.values ())
   }

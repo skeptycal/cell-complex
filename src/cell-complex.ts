@@ -37,6 +37,8 @@ class continuous_map_t {
   readonly continuous_map_evidence
   : continuous_map_evidence_t
 
+  readonly img: cell_complex_t
+
   constructor (
     readonly dom: cell_complex_t,
     readonly cod: cell_complex_t,
@@ -44,10 +46,8 @@ class continuous_map_t {
   ) {
     this.continuous_map_evidence =
       continuous_map_check (dom, cod, dic)
-  }
-
-  get (id: id_t) {
-    return this.dic.get (id)
+    this.img = cell_complex_t.merge_array (
+      dic.value_array ())
   }
 }
 
@@ -107,23 +107,23 @@ class cell_complex_t {
     return Math.max (0, ...array)
   }
 
-  point_p (id: id_t): boolean {
+  has_point (id: id_t): boolean {
     return this.point_array.some ((x) => id.eq (x))
   }
 
   dim_of (id: id_t): number {
-    if (this.point_p (id)) {
+    if (this.has_point (id)) {
       return 0
     } else {
       return this.get_cell (id) .dim ()
     }
   }
 
-  get_point_array (): Array <id_t> {
+  copy_point_array (): Array <id_t> {
     return this.point_array.slice ()
   }
 
-  get_cell_dic (): dic_t <id_t, cell_t> {
+  copy_cell_dic (): dic_t <id_t, cell_t> {
     return this.cell_dic.clone ()
   }
 
@@ -145,16 +145,16 @@ class cell_complex_t {
     return com
   }
 
-  idx (i: number): id_t {
-    return this.point_array [i]
-  }
-
   has_cell (id: id_t): boolean {
     return this.cell_dic.has (id)
   }
 
   get_cell (id: id_t): cell_t {
     return this.cell_dic.get (id)
+  }
+
+  has (id: id_t): boolean {
+    return this.has_point (id) || this.has_cell (id)
   }
 
   gen_id (dim: number): id_t {
@@ -229,9 +229,35 @@ class cell_complex_t {
 
   as_builder (): cell_complex_builder_t {
     let bui = new cell_complex_builder_t ()
-    bui.point_array = this.get_point_array ()
-    bui.cell_dic = this.get_cell_dic ()
+    bui.point_array = this.copy_point_array ()
+    bui.cell_dic = this.copy_cell_dic ()
     return bui
+  }
+
+  /**
+   * Merging two complexes
+   * only make sense when `this` and `that` are
+   * both sub-complex of some larger complex.
+   */
+  merge (that: cell_complex_t): cell_complex_t {
+    let bui = this.as_builder ()
+    for (let id of that.copy_point_array ()) {
+      if (!bui.has (id)) {
+        bui.push_point (id)
+      }
+    }
+    for (let [id, cell] of that.copy_cell_dic ()) {
+      if (!bui.has (id)) {
+        bui.set_cell (id, cell)
+      }
+    }
+    return new cell_complex_t (bui)
+  }
+
+  static merge_array (
+    com_array: Array <cell_complex_t>
+  ): cell_complex_t {
+    return com_array.reduce ((x, y) => x.merge (y))
   }
 }
 
@@ -253,8 +279,24 @@ class cell_complex_builder_t {
     }
   }
 
+  has_point (id: id_t): boolean {
+    return this.point_array.some ((x) => id.eq (x))
+  }
+
   set_cell (id: id_t, cell: cell_t) {
     this.cell_dic.set (id, cell)
+  }
+
+  has_cell (id: id_t): boolean {
+    return this.cell_dic.has (id)
+  }
+
+  get_cell (id: id_t): cell_t {
+    return this.cell_dic.get (id)
+  }
+
+  has (id: id_t): boolean {
+    return this.has_point (id) || this.has_cell (id)
   }
 
   build (): cell_complex_t {
@@ -271,7 +313,7 @@ class chain_t {
 
   closure (): cell_complex_t {
     let bui = new cell_complex_builder_t ()
-    sub_cell_complex_closure (
+    sub_complex_closure (
       this.cell_complex,
       this.id_array,
       bui)
@@ -279,35 +321,41 @@ class chain_t {
   }
 }
 
-function sub_cell_complex_closure (
-  cell_complex: cell_complex_t,
+function sub_complex_closure (
+  com: cell_complex_t,
   id_array: Array <id_t>,
   bui: cell_complex_builder_t,
 ): void {
   for (let id of id_array) {
-    if (id.dim === 0) {
-      if (bui.point_array.some ((x => id.eq (x)))) {
-        ////
-      } else {
-        bui.push_point (id)
-      }
+    if (bui.has (id)) {
+      ////
+    } else if (id.dim === 0) {
+      bui.push_point (id)
     } else {
-      if (bui.cell_dic.has (id)) {
-        ////
-      } else {
-        let cell = cell_complex.get_cell (id)
-        bui.set_cell (id, cell)
-        for (let [_id, image] of cell.dic.to_array ()) {
-          let point_array = image.get_point_array ()
-          let cell_array = image.get_cell_dic () .key_array ()
-          let next_id_array = point_array.concat (cell_array)
-          sub_cell_complex_closure (
-            cell_complex,
-            next_id_array,
-            bui)
-        }
-      }
+      let cell = com.get_cell (id)
+      bui.set_cell (id, cell)
+      let next = cell.img.copy_point_array () .concat (
+        cell.img.copy_cell_dic () .key_array ())
+      sub_complex_closure (com, next, bui)
     }
+  }
+}
+
+export
+class vertex_figure_t extends cell_complex_t {
+  readonly com: cell_complex_t
+  readonly vertex: id_t
+
+  constructor (
+    com: cell_complex_t,
+    vertex: id_t,
+  ) {
+    let bui = new cell_complex_builder_t ()
+    // [todo]
+    super (bui)
+
+    this.com = com
+    this.vertex = vertex
   }
 }
 
@@ -332,8 +380,8 @@ class bounfold_t extends cell_complex_t {
   readonly bounfold_evidence
   : bounfold_evidence_t
 
-  constructor (cell_complex: cell_complex_t) {
-    super (cell_complex.as_builder ())
+  constructor (com: cell_complex_t) {
+    super (com.as_builder ())
     this.bounfold_evidence = bounfold_check (this)
   }
 }
@@ -356,10 +404,8 @@ class spherical_complex_t extends cell_complex_t {
   readonly spherical_complex_evidence
   : spherical_complex_evidence_t
 
-  constructor (
-    cell_complex: cell_complex_t
-  ) {
-    super (cell_complex.as_builder ())
+  constructor (com: cell_complex_t) {
+    super (com.as_builder ())
     this.spherical_complex_evidence =
       spherical_complex_check (this)
   }
@@ -378,6 +424,10 @@ export
 class discrete_complex_t extends cell_complex_t {
   constructor () {
     super ()
+  }
+
+  idx (i: number): id_t {
+    return this.point_array [i]
   }
 
   from_number (n: number): discrete_complex_t {
@@ -542,7 +592,5 @@ class torus_t extends cell_complex_t {
     ])
   }
 }
-
-console.log (new torus_t ())
 
 //// 3 dimension
